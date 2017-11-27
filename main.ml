@@ -1,7 +1,7 @@
 let version = "0.0.1"
 
 type options = {
-  input : string;	output : string option; compileOnly : bool;
+  input : string; output : string option; compileOnly : bool;
   trace : bool; verbose : bool;
 }
 

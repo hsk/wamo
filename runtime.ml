@@ -215,7 +215,7 @@ let get_structure str x =
     else backtrack ()
   | _ -> backtrack ()
 
-let put_value z x =	bind' x (get_content z)
+let put_value z x = bind' x (get_content z)
 
 let put_unsafe_value y x =
   let is_unstable = function
