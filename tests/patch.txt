@@ -1,0 +1,12 @@
+--- tests/wam/src/Main.hs	2017-11-28 04:05:35.280238032 +0900
++++ tests/wam2/src/Main.hs	2017-11-28 00:02:58.000000000 +0900
+@@ -118,7 +118,8 @@
+ outputWam prog out = 
+     let writeProg ho prog = do 
+             hPutStr ho $ wamEmitProg prog
+-            hClose ho
++            hPutStr ho "\n"
++            when (ho /= stdout) $ hClose ho
+         openHandle (Just filename) = openFile filename WriteMode
+         openHandle Nothing         = return stdout
+     in do 
