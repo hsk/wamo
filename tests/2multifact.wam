@@ -1,0 +1,8 @@
+try_me_else(4)
+get_constant(a, x(1))
+proceed()
+trust_me_or_fail()
+get_constant(b, x(1))
+proceed()
+(p/1, 1)
+X=a

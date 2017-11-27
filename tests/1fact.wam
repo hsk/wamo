@@ -1,0 +1,4 @@
+get_constant(a, x(1))
+proceed()
+(p/1, 1)
+X=a

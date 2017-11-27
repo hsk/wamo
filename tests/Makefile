@@ -1,14 +1,11 @@
-
 WAMCC=../wamo
-
 SOURCES=$(shell ls *.pl)
-
 WAMFILES= $(SOURCES:.pl=.wam)
 
 all: $(WAMFILES)
 
 %.wam : %.pl
-	$(WAMCC) -i $< -o $@ -c
+	$(WAMCC) -i $< -v > $@
 
 clean:
 	-rm -f $(WAMFILES)

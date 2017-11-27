@@ -1,0 +1,12 @@
+try_me_else(6)
+get_structure(f/1, x(2))
+unify_constant(a)
+get_constant(b, x(1))
+proceed()
+trust_me_or_fail()
+get_structure(f/1, x(2))
+unify_constant(a)
+get_variable(x(2), x(1))
+proceed()
+(p/2, 1)
+X=a

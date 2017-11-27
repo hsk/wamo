@@ -1,0 +1,17 @@
+allocate(1)
+get_variable(y(1), x(2))
+get_value(y(1), x(1))
+put_value(y(1), x(1))
+call(q/1)
+put_value(y(1), x(1))
+deallocate()
+execute(r/1)
+get_variable(x(2), x(1))
+proceed()
+get_constant(a, x(1))
+proceed()
+(p/2, 1)
+(q/1, 9)
+(r/1, 11)
+Z=a
+Y=a
