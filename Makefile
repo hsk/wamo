@@ -4,8 +4,8 @@ all:
 	ocamllex lexer.mll
 	ocamlc -w A-8-9-27 -g -o wamo \
 		util.ml syntax.ml parser.ml lexer.ml \
-		WAMIR.ml WAMEmit.ml WAMCompiler.ml \
-		VMMemory.ml VMTrace.ml VM.ml \
+		ir.ml compiler.ml emit.ml \
+		memory.ml trace.ml vm.ml \
 		main.ml
 	rm -rf *.cm* parser.ml lexer.ml
 mkdata:

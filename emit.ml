@@ -1,4 +1,4 @@
-open WAMIR
+open Ir
 
 (* aux *)
 

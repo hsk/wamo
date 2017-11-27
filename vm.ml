@@ -1,6 +1,6 @@
-open WAMIR
-open VMMemory
-open VMTrace
+open Ir
+open Memory
+open Trace
 
 type 'c wamResult = (Syntax.varId * 'c) list
 

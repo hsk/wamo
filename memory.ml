@@ -1,4 +1,4 @@
-open WAMIR
+open Ir
 
 type wamCell =
   | Struct of wamLabel          (* (f/n) *)

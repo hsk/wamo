@@ -1,6 +1,6 @@
-open WAMIR
-open WAMEmit
-open VMMemory
+open Ir
+open Emit
+open Memory
 
 (* trace *)
 

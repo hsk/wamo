@@ -1,5 +1,5 @@
 open Syntax
-open WAMIR
+open Ir
 
 type wamSymbolTable = (varId * wamRegister) list
 type wamCompEnv = {
