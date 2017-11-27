@@ -4,13 +4,20 @@
 
 This is simple WAM (Warren Abstract Machine) implementation and compilation.
 
-original source is https://github.com/acharal/wam
+Original source is https://github.com/acharal/wam .
 
-## Install
+## Building
 
 ```bash
 $ apt install ocaml
 $ make && make test
+```
+
+## Run
+
+```bash
+$ ./wamo -i pl/prelude.pl
+X=cons(b, cons(a, nil))
 ```
 
 ## License GPLv2

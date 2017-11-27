@@ -1,6 +1,6 @@
-open Wam
-open Wam_emit
-open Runtime_mem
+open WAMIR
+open WAMEmit
+open VMMemory
 
 (* trace *)
 

@@ -1,4 +1,4 @@
-open Wam
+open WAMIR
 
 (* aux *)
 

@@ -1,4 +1,4 @@
-open Prolog
+open Syntax
 type wamAddress = int
 type wamLabel = string * int
 

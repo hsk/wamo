@@ -1,8 +1,8 @@
-open Wam
-open Runtime_mem
-open Runtime_trace
+open WAMIR
+open VMMemory
+open VMTrace
 
-type 'c wamResult = (Prolog.varId * 'c) list
+type 'c wamResult = (Syntax.varId * 'c) list
 
 let create_unbound i = change_cell i (Var i)
 let push_structure (f,n) =

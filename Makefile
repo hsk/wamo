@@ -3,9 +3,9 @@ all:
 	rm parser.mli
 	ocamllex lexer.mll
 	ocamlc -w A-8-9-27 -g -o wamo \
-		util.ml prolog.ml parser.ml lexer.ml \
-		wam.ml wam_emit.ml wam_compiler.ml \
-		runtime_mem.ml runtime_trace.ml runtime.ml \
+		util.ml syntax.ml parser.ml lexer.ml \
+		WAMIR.ml WAMEmit.ml WAMCompiler.ml \
+		VMMemory.ml VMTrace.ml VM.ml \
 		main.ml
 	rm -rf *.cm* parser.ml lexer.ml
 mkdata:

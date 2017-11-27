@@ -1,5 +1,5 @@
-open Prolog
-open Wam
+open Syntax
+open WAMIR
 
 type wamSymbolTable = (varId * wamRegister) list
 type wamCompEnv = {

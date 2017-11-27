@@ -1,5 +1,5 @@
 %{
-open Prolog
+open Syntax
 let rec makeLst ls cdr = match ls with
   | [] -> cdr
   | x::xs -> T ("cons", [x; makeLst xs cdr])
@@ -8,7 +8,7 @@ let rec makeLst ls cdr = match ls with
 %token GOAL BODY
 %token BAR DOT COMMA EOF
 %token LPAREN RPAREN LBRACK RBRACK
-%type <Prolog.program> parseprolog
+%type <Syntax.program> parseprolog
 %start parseprolog
 %%
 struct_    : ATOM                      { T ($1, []) }

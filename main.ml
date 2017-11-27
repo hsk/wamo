@@ -14,7 +14,7 @@ let parse filename =
   (g, p)
 
 let compile (g, p) = 
-  (Wam_compiler.wamCompileGoal g 0, Wam_compiler.wamCompileProg p)
+  (WAMCompiler.wamCompileGoal g 0, WAMCompiler.wamCompileProg p)
 
 let emit opt prog = 
   if opt.verbose || opt.output <> None then (
@@ -22,15 +22,15 @@ let emit opt prog =
       | Some filename -> open_out filename
       | None          -> stdout
     in
-    Printf.fprintf ho "%s\n" (Wam_emit.wamEmitProg prog);
+    Printf.fprintf ho "%s\n" (WAMEmit.wamEmitProg prog);
     if ho <> stdout then close_out ho
   )
 
 let run opt (compiledGoal, compiledProg) = 
   if opt.compileOnly then () else
-  let gs = Runtime.wamExecute opt.trace compiledProg compiledGoal in
+  let gs = VM.wamExecute opt.trace compiledProg compiledGoal in
   List.iter (fun (v,i) ->
-    Printf.printf "%s=%s\n" v (Runtime_trace.dumpCell i)
+    Printf.printf "%s=%s\n" v (VMTrace.dumpCell i)
   ) gs
 
 let () =
