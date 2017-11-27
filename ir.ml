@@ -1,4 +1,3 @@
-open Syntax
 type wamAddress = int
 type wamLabel = string * int
 
@@ -48,7 +47,7 @@ let getReg (_, regs) = regs
 
 type wamInstrSeq = wamInstr list
 type wamIndex = (wamLabel * wamAddress) list
-type wamGoal = (varId list * wamInstrSeq)
+type wamGoal = (Ast.varId list * wamInstrSeq)
 
 (* WAM Program *)
 type wamProgram = { wamIndex : wamIndex; wamCode : wamInstrSeq }

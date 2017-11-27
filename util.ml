@@ -1,6 +1,6 @@
 let rec nub = function
-  | []          ->  []
-  | x::xs       ->  x :: nub (List.filter (fun y -> not (x = y)) xs)
+  | []    -> []
+  | x::xs -> x :: nub (List.filter (fun y -> not (x = y)) xs)
 
 let concatMap f ls = List.concat (List.map f ls)
 

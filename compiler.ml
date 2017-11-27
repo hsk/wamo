@@ -1,4 +1,4 @@
-open Syntax
+open Ast
 open Ir
 
 type wamSymbolTable = (varId * wamRegister) list

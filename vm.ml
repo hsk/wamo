@@ -1,8 +1,8 @@
 open Ir
-open Memory
+open State
 open Trace
 
-type 'c wamResult = (Syntax.varId * 'c) list
+type 'c wamResult = (Ast.varId * 'c) list
 
 let create_unbound i = change_cell i (Var i)
 let push_structure (f,n) =

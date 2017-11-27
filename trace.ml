@@ -1,6 +1,6 @@
 open Ir
 open Emit
-open Memory
+open State
 
 (* trace *)
 
