@@ -1,0 +1,4 @@
+language: c
+script: sudo apt install ocaml && make && make test
+sudo: required
+
