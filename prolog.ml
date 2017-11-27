@@ -10,7 +10,7 @@ type program = goal * clause list
 let rec show = function
   | T(s,ts) -> Printf.sprintf "T(%S,%s)" s (show_terms ts)
   | V(s) -> Printf.sprintf "V(%S)" s
-  | V2(s,ts) -> Printf.sprintf "V2(%S,%s)" s (show_terms ts)	
+  | V2(s,ts) -> Printf.sprintf "V2(%S,%s)" s (show_terms ts)
 and show_terms ts = "[" ^ String.concat "," (List.map show ts) ^ "]"
 let show_clause (t,ts) = Printf.sprintf "(%s,%s)" (show t) (show_terms ts)
 let show_clauses cs = "[" ^ String.concat "," (List.map show_clause cs) ^ "]"
