@@ -67,13 +67,13 @@ let bind' i x =
   | Perm i -> bind (get_perm_real_addr i) x
 
 let rec unify_lists x y:bool =
-	let precedes x y =
-		match x,y with
-		| Var x, Var y -> x < y
-		| _, _ -> unexpected "cell content not variables"
-	in
-	(* occur check not implemented *)
-	let occursin x y = false in
+  let precedes x y =
+    match x,y with
+    | Var x, Var y -> x < y
+    | _, _ -> unexpected "cell content not variables"
+  in
+  (* occur check not implemented *)
+  let occursin x y = false in
   match x,y with
   | [],_ -> true
   | x::xs, y::ys ->
@@ -136,17 +136,17 @@ let retry_me_else p =
 
 let trust_me_else_fail () =
   let Addr b' = get_cell (!state.reg_b-1) in
-	state := {!state with reg_b = b'}
+  state := {!state with reg_b = b'}
 
 let backtrack () =
-	let unwind t =
-		let t' = !state.reg_t in
-		if t' > t then (
-			let ts = List.map get_cell (Util.gen (t+1) t') in
-			List.iter create_unbound (List.map (fun (Addr a)->a) ts);
-			state := {!state with reg_t = t}
-		)
-	in
+  let unwind t =
+    let t' = !state.reg_t in
+    if t' > t then (
+      let ts = List.map get_cell (Util.gen (t+1) t') in
+      List.iter create_unbound (List.map (fun (Addr a)->a) ts);
+      state := {!state with reg_t = t}
+    )
+  in
   let k = !state.reg_b in
   let Addr p = get_cell k in
   (*let Addr b = get_cell (k-1) in*)
@@ -160,10 +160,10 @@ let backtrack () =
   state := {!state with reg_p = p; reg_h = h; reg_c = c; reg_e = e; reg_a = a}
 
 let execute (q,n) =
-	let procedure_address q =
-		let preds = !state.idx in
-		List.assoc q preds
-	in
+  let procedure_address q =
+    let preds = !state.idx in
+    List.assoc q preds
+  in
   set_arity n;
   try jump (procedure_address (q,n))
   with Not_found -> backtrack ()
@@ -186,19 +186,19 @@ let call_variable x n =
   set_return_address (); execute_variable x n
 
 let unify (x:wamCell) (y:wamCell):unit =
-	if not (unify_lists [x] [y]) then backtrack ()
+  if not (unify_lists [x] [y]) then backtrack ()
 
 let unify_constant c =
   let content = get_cell !state.reg_s in
   next_arg ();
-	unify c content
+  unify c content
 let unify_value z =
   let b = get_cell !state.reg_s in
   next_arg ();
   unify (get_content z) b
 let unify_variable z =
   bind' z (get_cell (!state.reg_s));
-	next_arg ()
+  next_arg ()
 
 let get_constant (c:wamCell) (z:wamRegister):unit = unify c (get_content z)
 let get_variable z x = bind' z (get_content x)
@@ -213,36 +213,36 @@ let get_structure str x =
   | Str a ->
     if Struct str = get_cell a then (set_structure_pointer a ; next_arg ())
     else backtrack ()
-	| _ -> backtrack ()
+  | _ -> backtrack ()
 
 let put_value z x =	bind' x (get_content z)
 
 let put_unsafe_value y x =
-	let is_unstable = function
-		| Var r -> let Addr e' = get_cell !state.reg_e in e' < r
-		| _ -> false
-	in
-	let stabilize a b =
-		let h = !state.reg_h in
-		create_unbound (h+1);
-		state := {!state with reg_h = h+1};
-		let c = get_cell (h+1) in
-		bind' a c;
-		bind b c
-	in
+  let is_unstable = function
+    | Var r -> let Addr e' = get_cell !state.reg_e in e' < r
+    | _ -> false
+  in
+  let stabilize a b =
+    let h = !state.reg_h in
+    create_unbound (h+1);
+    state := {!state with reg_h = h+1};
+    let c = get_cell (h+1) in
+    bind' a c;
+    bind b c
+  in
   let dy = deref (get_content y) in
   if is_unstable dy then let Var r = dy in stabilize x r
   else bind' x dy
 
 let put_variable z x =
-	let stabilize' u v =
-		let h = !state.reg_h in
-		create_unbound (h+1);
-		state := {!state with reg_h = h+1};
-		let c = get_cell (h+1) in
-		bind' u c;
-		bind' v c
-	in
+  let stabilize' u v =
+    let h = !state.reg_h in
+    create_unbound (h+1);
+    state := {!state with reg_h = h+1};
+    let c = get_cell (h+1) in
+    bind' u c;
+    bind' v c
+  in
   match z with
   | Temp i -> stabilize' z x
   | Perm i ->
@@ -251,12 +251,12 @@ let put_variable z x =
     let a' = get_cell a in
     set_content z a';
     (*set_content x a';*)
-		bind' x a'
+    bind' x a'
 
 let put_structure f z =
   let h = !state.reg_h in
   push_structure f;
-	bind' z (get_cell (h+1))
+  bind' z (get_cell (h+1))
 
 let put_constant c z = bind' z c
 
@@ -302,11 +302,11 @@ let wamExecute trace p (vars, goal) =
     state := {!state with reg_h = !state.reg_h + g_arity};
     jump g_addr
   in
-	let rec loop () =
-		if trace then traceCommand (!state.reg_p, get_instr !state.reg_p);
-		let (i:wamInstr) = readinstr !state.reg_p in
-		advance 1;
-		sem i;
+  let rec loop () =
+    if trace then traceCommand (!state.reg_p, get_instr !state.reg_p);
+    let (i:wamInstr) = readinstr !state.reg_p in
+    advance 1;
+    sem i;
     if not (!state.reg_p = 0) then loop () (* (!state.reg_p <= m) loop *)
   in
   init ();

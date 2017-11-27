@@ -1,67 +1,67 @@
 open Wam
 
 type wamCell =
-	| Struct of wamLabel          (* (f/n) *)
-	| Var of wamAddress           (* REF n *)
-	| Str of wamAddress           (* STR n *)
-	| Cons of string              (* CONS s *)
-	| App of wamAddress * int     (* APP n m *)
-	| Addr of wamAddress
+  | Struct of wamLabel          (* (f/n) *)
+  | Var of wamAddress           (* REF n *)
+  | Str of wamAddress           (* STR n *)
+  | Cons of string              (* CONS s *)
+  | App of wamAddress * int     (* APP n m *)
+  | Addr of wamAddress
 
 let show = function
-	| Struct (s,l) -> Printf.sprintf "Struct(%S,%i)" s l
-	| Var i -> Printf.sprintf "Var(%d)" i
-	| Str i -> Printf.sprintf "Str(%d)" i
-	| Cons x -> Printf.sprintf "Cons(%S)" x
-	| App(a,i) -> Printf.sprintf "App(%d,%d)" a i
-	| Addr a -> Printf.sprintf "Addr(%d)" a
+  | Struct (s,l) -> Printf.sprintf "Struct(%S,%i)" s l
+  | Var i -> Printf.sprintf "Var(%d)" i
+  | Str i -> Printf.sprintf "Str(%d)" i
+  | Cons x -> Printf.sprintf "Cons(%S)" x
+  | App(a,i) -> Printf.sprintf "App(%d,%d)" a i
+  | Addr a -> Printf.sprintf "Addr(%d)" a
 
 type wamMem = wamCell array
 type wamCode = wamInstr array
 
 type state = {
-	idx   : wamIndex;   (* predicate index *)
-	mem   : wamMem;     (* global space of memory *)
-	code  : wamCode;    (* instructions *)
-	regs  : wamMem;     (* registers *)
-	reg_p : wamAddress; (* register pointing  to code *)
-	reg_t : wamAddress; (* register pointing at the top of trail *)
-	reg_c : wamAddress; (* register to hold the last code before a call *)
-	reg_h : wamAddress; (* register pointing at the top of heap (global stack) *)
-	reg_b : wamAddress; (* register pointing at the top of backtrack (local stack) *)
-	reg_e : wamAddress; (* register pointing at the top of the environment (local stack) *)
-	reg_a : int       ; (* register holding the arity of the argument *)
-	reg_s : wamAddress; (* structure pointer *)
-	}
+  idx   : wamIndex;   (* predicate index *)
+  mem   : wamMem;     (* global space of memory *)
+  code  : wamCode;    (* instructions *)
+  regs  : wamMem;     (* registers *)
+  reg_p : wamAddress; (* register pointing  to code *)
+  reg_t : wamAddress; (* register pointing at the top of trail *)
+  reg_c : wamAddress; (* register to hold the last code before a call *)
+  reg_h : wamAddress; (* register pointing at the top of heap (global stack) *)
+  reg_b : wamAddress; (* register pointing at the top of backtrack (local stack) *)
+  reg_e : wamAddress; (* register pointing at the top of the environment (local stack) *)
+  reg_a : int       ; (* register holding the arity of the argument *)
+  reg_s : wamAddress; (* structure pointer *)
+  }
 
 let emptyWamState : state = {
-		idx = []; mem  = [||]; code = [||]; regs = [||];
-		reg_p = 0; reg_c = 0; reg_b = 0; reg_s = 0;
-		reg_a = 0; reg_t = 0; reg_h = 0; reg_e = 0;
-	}
+    idx = []; mem  = [||]; code = [||]; regs = [||];
+    reg_p = 0; reg_c = 0; reg_b = 0; reg_s = 0;
+    reg_a = 0; reg_t = 0; reg_h = 0; reg_e = 0;
+  }
 
 let state = ref emptyWamState
 
 let init_mem arraysize regnum =
-	let startHeap     = 0 in
-	let startAndStack = startHeap + 1000 in
-	let startOrStack  = startAndStack in
-	let startTrail    = startAndStack + 1000 in
-	state := { !state with
-		mem   = Array.make (arraysize+1) (Var 0);
-		regs  = Array.make (regnum+1) (Var 0);
-		reg_e = startAndStack; reg_b = startOrStack;
-		reg_h = startHeap;     reg_t = startTrail;
-	}
+  let startHeap     = 0 in
+  let startAndStack = startHeap + 1000 in
+  let startOrStack  = startAndStack in
+  let startTrail    = startAndStack + 1000 in
+  state := { !state with
+    mem   = Array.make (arraysize+1) (Var 0);
+    regs  = Array.make (regnum+1) (Var 0);
+    reg_e = startAndStack; reg_b = startOrStack;
+    reg_h = startHeap;     reg_t = startTrail;
+  }
 
 let init_code i =
-	let c = Array.make (1024+1) (Backtrack,[]) in
-	let rec loop n = function
-		| [] -> ()
-		| x::xs -> c.(n) <- x; loop (n+1) xs
-	in
-	loop 1 i;
-	state := {!state with code = c }
+  let c = Array.make (1024+1) (Backtrack,[]) in
+  let rec loop n = function
+    | [] -> ()
+    | x::xs -> c.(n) <- x; loop (n+1) xs
+  in
+  loop 1 i;
+  state := {!state with code = c }
 
 (* memory management *)
 

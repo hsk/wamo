@@ -1,6 +1,6 @@
 let rec nub = function
-	| []          ->  []
-	| x::xs       ->  x :: nub (List.filter (fun y -> not (x = y)) xs)
+  | []          ->  []
+  | x::xs       ->  x :: nub (List.filter (fun y -> not (x = y)) xs)
 
 let concatMap f ls = List.concat (List.map f ls)
 
@@ -20,7 +20,7 @@ let subtract a b =
     | x::xs when List.mem x b -> loop xs
     | x::xs -> x::loop xs
   in
-	loop a
+  loop a
 
 let rec delete a = function
   | [] -> []
@@ -43,5 +43,5 @@ let rec zip xs ys = match xs,ys with
   | x::xs,y::ys -> (x,y)::zip xs ys
 
 let rec pow a = function
-	| 1 -> a
-	| n -> a * pow a (n - 1)
+  | 1 -> a
+  | n -> a * pow a (n - 1)

@@ -25,8 +25,8 @@ let perms : clause -> varId list =
       | l::ls ->
         let l' = List.concat ls in
         (List.filter (fun v -> List.mem v l') l) @ aux ls
-		in
-		Util.nub (aux lst)
+    in
+    Util.nub (aux lst)
 
 let safe : clause -> varId list = function
   | (h, []) -> varsTerm h
