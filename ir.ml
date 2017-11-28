@@ -1,33 +1,33 @@
-type wamAddress = int
-type wamLabel = string * int
+type address = int
+type label = string * int
 
 (* WAM Operator *)
-type wamOp =
+type op =
   | PutVariable
   | PutValue
   | PutUnsafeValue
-  | PutStructure of wamLabel
+  | PutStructure of label
   | PutConstant of string
-  | GetStructure of wamLabel
+  | GetStructure of label
   | GetConstant of string
   | GetValue
   | GetVariable
   | UnifyConstant of string
   | UnifyValue
   | UnifyVariable
-  | Call of wamLabel
-  | Execute of wamLabel
+  | Call of label
+  | Execute of label
   | Proceed
   | Allocate of int
   | Deallocate
-  | TryMeElse of wamAddress
-  | RetryMeElse of wamAddress
+  | TryMeElse of address
+  | RetryMeElse of address
   | TrustMe
   | Backtrack
   | CallVariable
   | ExecuteVariable
 
-type wamRegister = 
+type register = 
   | Perm of int
   | Temp of int
 
@@ -39,21 +39,20 @@ let showRegs rs = Printf.sprintf "[%s]" (String.concat "," (List.map showReg rs)
 
 (* WAM Instruction *)
 
-type wamArg = wamRegister
-type wamInstr = wamOp * wamArg list
+type arg = register
+type instr = op * arg list
 
 let getOp  (op, _)   = op
 let getReg (_, regs) = regs
 
-type wamInstrSeq = wamInstr list
-type wamIndex = (wamLabel * wamAddress) list
-type wamGoal = (Ast.varId list * wamInstrSeq)
+type instrSeq = instr list
+type index = (label * address) list
+type goal = (Ast.varId list * instrSeq)
 
 (* WAM Program *)
-type wamProgram = { wamIndex : wamIndex; wamCode : wamInstrSeq }
+type program = index * instrSeq
 
-let mkDB : (wamLabel * wamInstrSeq) list -> wamProgram =
+let mkDB : (label * instrSeq) list -> program =
   fun lst ->
     let aux (idx, code) (lbl, instr) = (idx @ [(lbl, List.length code + 1)], code @ instr) in
-    let (idx, code) = List.fold_left aux ([],[]) lst in
-    { wamIndex = idx; wamCode = code }
+    List.fold_left aux ([],[]) lst

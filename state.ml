@@ -1,12 +1,12 @@
 open Ir
 
-type wamCell =
-  | Struct of wamLabel          (* (f/n) *)
-  | Var of wamAddress           (* REF n *)
-  | Str of wamAddress           (* STR n *)
-  | Cons of string              (* CONS s *)
-  | App of wamAddress * int     (* APP n m *)
-  | Addr of wamAddress
+type cell =
+  | Struct of label          (* (f/n) *)
+  | Var of address           (* REF n *)
+  | Str of address           (* STR n *)
+  | Cons of string           (* CONS s *)
+  | App of address * int     (* APP n m *)
+  | Addr of address
 
 let show = function
   | Struct (s,l) -> Printf.sprintf "Struct(%S,%i)" s l
@@ -16,31 +16,31 @@ let show = function
   | App(a,i) -> Printf.sprintf "App(%d,%d)" a i
   | Addr a -> Printf.sprintf "Addr(%d)" a
 
-type wamMem = wamCell array
-type wamCode = wamInstr array
+type mem = cell array
+type code = instr array
 
 type state = {
-  idx   : wamIndex;   (* predicate index *)
-  mem   : wamMem;     (* global space of memory *)
-  code  : wamCode;    (* instructions *)
-  regs  : wamMem;     (* registers *)
-  reg_p : wamAddress; (* register pointing  to code *)
-  reg_t : wamAddress; (* register pointing at the top of trail *)
-  reg_c : wamAddress; (* register to hold the last code before a call *)
-  reg_h : wamAddress; (* register pointing at the top of heap (global stack) *)
-  reg_b : wamAddress; (* register pointing at the top of backtrack (local stack) *)
-  reg_e : wamAddress; (* register pointing at the top of the environment (local stack) *)
-  reg_a : int       ; (* register holding the arity of the argument *)
-  reg_s : wamAddress; (* structure pointer *)
+  idx   : index;   (* predicate index *)
+  mem   : mem;     (* global space of memory *)
+  code  : code;    (* instructions *)
+  regs  : mem;     (* registers *)
+  reg_p : address; (* register pointing  to code *)
+  reg_t : address; (* register pointing at the top of trail *)
+  reg_c : address; (* register to hold the last code before a call *)
+  reg_h : address; (* register pointing at the top of heap (global stack) *)
+  reg_b : address; (* register pointing at the top of backtrack (local stack) *)
+  reg_e : address; (* register pointing at the top of the environment (local stack) *)
+  reg_a : int;     (* register holding the arity of the argument *)
+  reg_s : address; (* structure pointer *)
   }
 
-let emptyWamState : state = {
+let emptyState : state = {
     idx = []; mem  = [||]; code = [||]; regs = [||];
     reg_p = 0; reg_c = 0; reg_b = 0; reg_s = 0;
     reg_a = 0; reg_t = 0; reg_h = 0; reg_e = 0;
   }
 
-let state = ref emptyWamState
+let state = ref emptyState
 
 let init_mem arraysize regnum =
   let startHeap     = 0 in

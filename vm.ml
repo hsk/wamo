@@ -1,8 +1,5 @@
 open Ir
 open State
-open Trace
-
-type 'c wamResult = (Ast.varId * 'c) list
 
 let create_unbound i = change_cell i (Var i)
 let push_structure (f,n) =
@@ -185,7 +182,7 @@ let execute_variable r n =
 let call_variable x n =
   set_return_address (); execute_variable x n
 
-let unify (x:wamCell) (y:wamCell):unit =
+let unify (x:cell) (y:cell):unit =
   if not (unify_lists [x] [y]) then backtrack ()
 
 let unify_constant c =
@@ -200,7 +197,7 @@ let unify_variable z =
   bind' z (get_cell (!state.reg_s));
   next_arg ()
 
-let get_constant (c:wamCell) (z:wamRegister):unit = unify c (get_content z)
+let get_constant (c:cell) (z:register):unit = unify c (get_content z)
 let get_variable z x = bind' z (get_content x)
 let get_value x z = unify (get_content x) (get_content z)
 let get_structure str x =
@@ -260,7 +257,7 @@ let put_structure f z =
 
 let put_constant c z = bind' z c
 
-let sem : wamInstr -> unit =
+let sem : instr -> unit =
   function 
   | (Allocate n, _)         -> allocate n
   | (Deallocate, _)         -> deallocate ()
@@ -285,15 +282,16 @@ let sem : wamInstr -> unit =
   | (PutConstant c, [x])    -> put_constant (Cons c) x
   | x,_                     -> unexpected ("unknown instruction " (* ^ show x todo *))
 
-let wamExecute trace p (vars, goal) =
+let run trace (index,code) (vars, goal) =
   let g_arity = List.length vars in
-  let g_addr  = List.length p.wamCode + 1 in
-  let init_prog (i:wamInstrSeq):unit =
+  let g_addr  = List.length code + 1 in
+  let init_prog (i:instrSeq):unit =
     init_code i;
-    state := {!state with idx = p.wamIndex; reg_p = 0; reg_c = 0; reg_s = 0}
+    state := {!state with idx = index; reg_p = 0; reg_c = 0; reg_s = 0}
   in
-  let init () =
-    init_prog (p.wamCode @ goal);
+	let init () =
+		state := emptyState;
+    init_prog (code @ goal);
     init_mem (Util.pow 2 20) 100
   in
   let init_goal () =
@@ -303,8 +301,8 @@ let wamExecute trace p (vars, goal) =
     jump g_addr
   in
   let rec loop () =
-    if trace then traceCommand (!state.reg_p, get_instr !state.reg_p);
-    let (i:wamInstr) = readinstr !state.reg_p in
+    if trace then Trace.traceCommand (!state.reg_p, get_instr !state.reg_p);
+    let (i:instr) = readinstr !state.reg_p in
     advance 1;
     sem i;
     if not (!state.reg_p = 0) then loop () (* (!state.reg_p <= m) loop *)
