@@ -5,23 +5,23 @@ type options = { input : string; output : string option; compile : bool; trace :
 let file f c b = let r = b f in c f; r
 
 let parse filename =
-	if filename = "" then exit 0;
-	file (open_in filename) close_in (fun f ->
-		Parser.parseprolog Lexer.token (Lexing.from_channel f)
-	)
+  if filename = "" then exit 0;
+  file (open_in filename) close_in (fun f ->
+    Parser.parseprolog Lexer.token (Lexing.from_channel f)
+  )
 
 let compile (g, p) = (Compiler.compileGoal g 0, Compiler.compileProg p)
 
 let emit opt ir = 
-	match opt.output with
-	| Some filename         -> file (open_out filename) close_out (Emit.emitProg ir)
-	| None when opt.verbose -> Emit.emitProg ir stdout
-	| _                     -> ()
+  match opt.output with
+  | Some filename         -> file (open_out filename) close_out (Emit.emitProg ir)
+  | None when opt.verbose -> Emit.emitProg ir stdout
+  | _                     -> ()
 
 let run opt (g, p) =
   if opt.compile then () else
   Vm.run opt.trace p g |>
-	List.iter (fun (v,i) -> Printf.printf "%s=%s\n" v (Trace.dumpCell i))
+  List.iter (fun (v,i) -> Printf.printf "%s=%s\n" v (Trace.dumpCell i))
 
 let () =
   let opt = ref { input = ""; output = None; compile = false; trace = false; verbose = false } in

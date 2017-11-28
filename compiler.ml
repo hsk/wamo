@@ -86,10 +86,10 @@ let newTemp r m =
   Temp (n + 1)
 
 let newVar r n v =
-	let pe = !env.perms' in
-	let p = if List.mem v pe then newPerm () else newTemp r n in
-	state := {!state with symbolTbl = (v,p)::!state.symbolTbl};
-	p
+  let pe = !env.perms' in
+  let p = if List.mem v pe then newPerm () else newTemp r n in
+  state := {!state with symbolTbl = (v,p)::!state.symbolTbl};
+  p
 
 let rec compileLit : bool          (* h is a bool - if true then compilation is a "get" else is a "put" mode *)
               -> Ast.term list     (* a list of literals to compile *)
@@ -119,7 +119,7 @@ let rec compileLit : bool          (* h is a bool - if true then compilation is 
         ) else (opValue,   [z;r]) :: compileLit h ts rs n
       with Not_found ->
         let z = newVar (r::rs) n v in
-				(opVariable, [z;r]) :: compileLit h ts rs n
+        (opVariable, [z;r]) :: compileLit h ts rs n
 
 and compileTerm : bool             (* h is a bool - if true then compilation is a "get" else is a "put" mode *)
                -> Ast.term list    (* a list of terms to compile *)
@@ -186,21 +186,21 @@ let rec compileAlters (l::ls) i =
   let c = compileClause l in
   match ls with
   | [] -> (TrustMe,[])::c
-  | _  ->	let j = i + List.length c + 1 in
-					(RetryMeElse j,[])::c @ compileAlters ls j
+  | _  -> let j = i + List.length c + 1 in
+          (RetryMeElse j,[])::c @ compileAlters ls j
 
 let compilePredicate l i =
   match l with
   | []     -> [(Backtrack, [])]
   | [d]    -> compileClause d
-  | d::ds  ->	let c  = compileClause d in
-							let j  = i + List.length c + 1 in
-							(TryMeElse j, [])::c @ compileAlters ds j 
+  | d::ds  -> let c  = compileClause d in
+              let j  = i + List.length c + 1 in
+              (TryMeElse j, [])::c @ compileAlters ds j 
 
 let rec compileDefs : label list    (* list of predicate names to compile *)
-									 -> Ast.clause list  (* clauses of program *)
-									 -> int              (* offset to start *)
-									 -> instrSeq list (* returns a list of instruction sequence, one for each predicate *)
+                   -> Ast.clause list  (* clauses of program *)
+                   -> int              (* offset to start *)
+                   -> instrSeq list (* returns a list of instruction sequence, one for each predicate *)
   = fun l p i -> match l with
     | [] -> []
     | q::qs ->

@@ -289,8 +289,8 @@ let run trace (index,code) (vars, goal) =
     init_code i;
     state := {!state with idx = index; reg_p = 0; reg_c = 0; reg_s = 0}
   in
-	let init () =
-		state := emptyState;
+  let init () =
+    state := emptyState;
     init_prog (code @ goal);
     init_mem (Util.pow 2 20) 100
   in
