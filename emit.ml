@@ -29,9 +29,9 @@ let pprInstr = function
   | (RetryMeElse n, _)       -> auxInstr "retry_me_else" [string_of_int n]
   | (TrustMe, _)             -> auxInstr "trust_me_or_fail" []
 let pprIdx idx =
-	idx |>
-	List.map (fun ((s,n),i) -> "(" ^ (String.concat ", " [auxPred s n; string_of_int i]) ^ ")") |>
-	Util.vcat
+  idx |>
+  List.map (fun ((s,n),i) -> "(" ^ (String.concat ", " [auxPred s n; string_of_int i]) ^ ")") |>
+  Util.vcat
 let pprProg (index,code) = Printf.sprintf "%s\n%s" (Util.vcat (List.map pprInstr code)) (pprIdx index)
 
 let emitInstr i    f = Printf.fprintf f "%s\n" (pprInstr i)
