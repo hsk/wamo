@@ -25,16 +25,7 @@ let varsTerm t =
   Util.nub (vars' t)
 
 let varsClause (t, ts) = Util.nub (varsTerm t @ Util.concatMap varsTerm ts)
-
 let varsGoal ts = Util.nub (Util.concatMap varsTerm ts)
-
-let preds cs =  Util.nub (List.map (fun (T (s,args),_) -> (s, List.length args)) cs)
-
-let defs cs (p,n) =
-  let isOfPred (T (s,args),_) =
-    s = p && List.length args = n
-  in
-  List.filter isOfPred cs
-
-let args (T (_, x))    = x
-let functor_ (T (x, _)) = x
+let preds cs = Util.nub (List.map (fun (T (s,args),_) -> (s, List.length args)) cs)
+let defs cs (p,n) = List.filter (fun (T (s,args),_) -> s = p && List.length args = n) cs
+let args (T (_, x)) = x

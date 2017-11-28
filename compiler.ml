@@ -55,22 +55,20 @@ let local env init body =
   env := save;
   r
 
-(* WAM Compilation *)
-
 type symbolTable = (Ast.varId * register) list
 type compEnv = {
-  perms'    : Ast.varId list  (* permanent variables *)
+  perms     : Ast.varId list  (* permanent variables *)
 }
 type compState = {
   symbolTbl : symbolTable;    (* mapping between clause variables and registers *)
-  unsafe'   : Ast.varId list; (* unsafe variables *)
+  unsafe    : Ast.varId list; (* unsafe variables *)
 }
-let env   = ref { perms' = [] }
-let state = ref { symbolTbl = []; unsafe' = [] }
+let env   = ref { perms = [] }
+let state = ref { symbolTbl = []; unsafe = [] }
 
 let compile f =
-  state := { symbolTbl = []; unsafe' = [] };
-  env := { perms' = [] };
+  state := { symbolTbl = []; unsafe = [] };
+  env := { perms = [] };
   f ()
 
 let newPerm () =
@@ -86,86 +84,68 @@ let newTemp r m =
   Temp (n + 1)
 
 let newVar r n v =
-  let pe = !env.perms' in
-  let p = if List.mem v pe then newPerm () else newTemp r n in
+  let p = if List.mem v !env.perms then newPerm () else newTemp r n in
   state := {!state with symbolTbl = (v,p)::!state.symbolTbl};
   p
 
-let rec compileLit : bool          (* h is a bool - if true then compilation is a "get" else is a "put" mode *)
-              -> Ast.term list     (* a list of literals to compile *)
-              -> register list  (* a list of wam registers to assign to literals (one register for one literal) *)
-              -> int               (* a maximum integer used to assign new variables *)
-              -> instrSeq =     (* the output sequence of wam instructions *)
-  fun h t r n -> match h,t,r,n with
-  | h,[], _, _  -> []
-  | h,t::ts,r::rs,n ->
-    let opValue     = if h then GetValue                else PutValue in
-    let opConstant  = if h then fun x -> GetConstant x  else fun x -> PutConstant x in
-    let opStructure = if h then fun x -> GetStructure x else fun x -> PutStructure x in
-    let opVariable  = if h then GetVariable             else PutVariable in
-    match t with
-    | Ast.T (s, []) -> (opConstant s, [r]) :: compileLit h ts rs n
-    | Ast.T (_, args) ->
-        begin match r with (* not an argument Temp 1...Temp n is reserved for procedural calls *)
-        | Temp i when i > n -> (GetStructure (termToLabel t), [r])::compileTerm h args ts rs n
-        | _                 -> (opStructure  (termToLabel t), [r])::compileTerm h args ts rs n
-        end
-    | Ast.V v ->
-      try
-        let z = List.assoc v !state.symbolTbl in
-        if List.mem v !state.unsafe' then (
-          state := {!state with unsafe' = Util.delete v !state.unsafe'};
-          (PutUnsafeValue, [z;r]) :: compileLit h ts rs n
-        ) else (opValue,   [z;r]) :: compileLit h ts rs n
-      with Not_found ->
-        let z = newVar (r::rs) n v in
-        (opVariable, [z;r]) :: compileLit h ts rs n
+(* WAM Compilation *)
 
-and compileTerm : bool             (* h is a bool - if true then compilation is a "get" else is a "put" mode *)
-               -> Ast.term list    (* a list of terms to compile *)
-               -> Ast.term list    (* a list of literals to continue compilation after the compilation of the first argument *)
-               -> register list (* a list of wam registers to assign to literals (one register for one literal) *)
-               -> int              (* a minimum lower bound integer used to assign new variables *)
-               -> instrSeq =    (* the output sequence of wam instructions *)
-  fun h l ts rs n ->
-  match h,l,ts,rs,n with
-  | h,[],ts,rs,n     -> compileLit h ts rs n
-  | h,a::as_,ts,rs,n ->
-    match a with
-    | Ast.T (s,[]) -> (UnifyConstant s, []) :: compileTerm h as_ ts rs n
-    | Ast.T (s, args) ->
-      let r' = newTemp rs n in
-      (UnifyVariable, [r']) :: compileTerm h as_ (a::ts) (r'::rs) n
-    | Ast.V v ->
-      try
-        let z = List.assoc v !state.symbolTbl in
-        (UnifyValue, [z]) :: compileTerm h as_ ts rs n
-      with Not_found ->
-        let z = newVar rs n v in
-        (UnifyVariable, [z])::compileTerm h as_ ts rs n
+let opValue     h = if h then GetValue                else PutValue
+let opConstant  h = if h then fun x -> GetConstant  x else fun x -> PutConstant  x
+let opStructure h = if h then fun x -> GetStructure x else fun x -> PutStructure x
+let opVariable  h = if h then GetVariable             else PutVariable
 
-let compileHeadLit ts n =
+let rec compileLit h n = function
+  | [], _  -> []
+  | Ast.T (s, [])::ts,r::rs -> (opConstant h s, [r]) :: compileLit h n (ts, rs)
+  | (Ast.T (_, args)as t)::ts,(Temp i as r)::rs when i > n ->
+    (GetStructure (termToLabel t), [r])::compileTerm h n (ts, rs) args
+  | (Ast.T (_, args)as t)::ts,r::rs ->
+    (opStructure h (termToLabel t), [r])::compileTerm h n (ts, rs) args
+  | Ast.V v::ts,r::rs when List.mem_assoc v !state.symbolTbl ->
+    let z = List.assoc v !state.symbolTbl in
+    if List.mem v !state.unsafe then (
+      state := {!state with unsafe = Util.delete v !state.unsafe};
+      (PutUnsafeValue, [z;r]) :: compileLit h n (ts, rs)
+    ) else (opValue h, [z;r]) :: compileLit h n (ts, rs)
+  | Ast.V v::ts,r::rs ->
+    let z = newVar (r::rs) n v in
+    (opVariable h, [z;r]) :: compileLit h n (ts, rs)
+
+and compileTerm h n (ts, rs) = function
+  | []                  -> compileLit h n (ts, rs)
+  | Ast.T (s,[])::as_   -> (UnifyConstant s, []) :: compileTerm h n (ts, rs) as_
+  | (Ast.T _ as a)::as_ ->
+    let r' = newTemp rs n in
+    (UnifyVariable, [r']) :: compileTerm h n (a::ts, r'::rs) as_
+  | Ast.V v::as_ when List.mem_assoc v !state.symbolTbl ->
+    let z = List.assoc v !state.symbolTbl in
+    (UnifyValue, [z]) :: compileTerm h n (ts, rs) as_
+  | Ast.V v::as_ ->
+    let z = newVar rs n v in
+    (UnifyVariable, [z])::compileTerm h n (ts, rs) as_
+
+let compileHead n ts =
   let n' = List.length ts in
   let xs = List.map (fun x -> Temp x) (List.rev (Util.gen 1 n')) in
-  compileLit true ts xs n
+  compileLit true n (ts, xs)
 
-let compileGoalLit ts =
+let compileGoal ts =
   let n  = List.length ts in
   let xs = List.map (fun x -> Temp x) (List.rev (Util.gen 1 n)) in
-  compileLit false ts xs n
+  compileLit false n (ts, xs)
 
-let rec compileBody l e =
-  match l,e with
-  | [],_  -> [(Proceed, [])]
-  | [g], e ->
+let rec compileBody e = function
+  | []  -> [(Proceed, [])]
+  | [g] ->
     let c = [(Execute (termToLabel g), [])] in
     let c' = if e then (Deallocate,[])::c else c in
-    compileGoalLit (Ast.args g) @ c'
-  | g::gs, e ->
-      let c = compileGoalLit (Ast.args g) in
+    compileGoal (Ast.args g) @ c'
+  | g::gs ->
+      let c = compileGoal (Ast.args g) in
       let c' = c @ [(Call (termToLabel g), [])] in
       state := {!state with symbolTbl = List.filter (fun x -> isPerm(snd x)) !state.symbolTbl};
-      c' @ compileBody gs e
+      c' @ compileBody e gs
 
 let compileClause ((h,b) as cl) =
   (* n registers are reserved for arguments of first literal in body (?) *)
@@ -175,43 +155,35 @@ let compileClause ((h,b) as cl) =
   let headArgs = Ast.args h in
   let permans = perms cl in
   let unsafes = unsafe cl in
-  local env (fun _ -> {perms' = permans}) (fun () ->
-    state := {symbolTbl = []; unsafe' = unsafes};
-    let g = compileHeadLit headArgs n in
+  local env (fun _ -> {perms = permans}) (fun () ->
+    state := {symbolTbl = []; unsafe = unsafes};
+    let g = compileHead n headArgs in
     let g' = if notSingleton then (Allocate (List.length permans), [])::g else g in
-    g' @ compileBody b notSingleton
+    g' @ compileBody notSingleton b
   )
 
-let rec compileAlters (l::ls) i =
-  let c = compileClause l in
-  match ls with
-  | [] -> (TrustMe,[])::c
-  | _  -> let j = i + List.length c + 1 in
-          (RetryMeElse j,[])::c @ compileAlters ls j
+let rec compileAlterPredicates i = function
+  | [l]   -> (TrustMe,[])::compileClause l
+  | l::ls -> let c = compileClause l in
+             let j = i + List.length c + 1 in
+             (RetryMeElse j,[])::c @ compileAlterPredicates j ls
 
-let compilePredicate l i =
-  match l with
+let compilePredicate i = function
   | []     -> [(Backtrack, [])]
   | [d]    -> compileClause d
-  | d::ds  -> let c  = compileClause d in
-              let j  = i + List.length c + 1 in
-              (TryMeElse j, [])::c @ compileAlters ds j 
+  | d::ds  -> let c = compileClause d in
+              let j = i + List.length c + 1 in
+              (TryMeElse j, [])::c @ compileAlterPredicates j ds
 
-let rec compileDefs : label list    (* list of predicate names to compile *)
-                   -> Ast.clause list  (* clauses of program *)
-                   -> int              (* offset to start *)
-                   -> instrSeq list (* returns a list of instruction sequence, one for each predicate *)
-  = fun l p i -> match l with
-    | [] -> []
-    | q::qs ->
-      let c = compilePredicate (Ast.defs p q) i in
-      let j = i + List.length c in
-      c :: compileDefs qs p j
+let rec compileDefs p i = function
+  | []    -> []
+  | q::qs -> let c = compilePredicate i (Ast.defs p q) in
+             c :: compileDefs p (i + List.length c) qs
 
 let compileProg : Ast.clause list -> program =
   fun p ->
     let ps = Ast.preds p in
-    let cs = compile (fun () -> compileDefs ps p 1) in
+    let cs = compile (fun () -> compileDefs p 1 ps) in
     mkDB (Util.zip ps cs)
 
 let compileGoal : Ast.goal -> int -> goal =
@@ -219,4 +191,4 @@ let compileGoal : Ast.goal -> int -> goal =
     let vg  = Ast.varsGoal g in
     let vg' = List.map (fun v -> Ast.V v) vg in
     let g'  = (Ast.T ("?", vg'), g) in
-    (List.rev vg, compile (fun () -> compilePredicate [g'] i))
+    (List.rev vg, compile (fun () -> compilePredicate i [g']))
